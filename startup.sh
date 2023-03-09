@@ -78,5 +78,24 @@ if [ "${CORS_ENABLED}" = "true" ]; then
   fi
 fi
 
+if [ "${SSL_ENABLED}" = "true" ]; then
+  if ! grep -q DockerGeoServerSslParam "$CATALINA_HOME/webapps/geoserver/WEB-INF/web.xml"; then
+    echo "Enabling SSL for $CATALINA_HOME/webapps/geoserver/WEB-INF/web.xml"
+    sed -i "\:</web-app>:i\\
+      <context-param>\n\
+        <param-name>DockerGeoServerSslParam</param-name>\n\
+        <param-value>true</param-value>\n\
+      </context-param>\n\
+      <context-param>\n\
+        <param-name>PROXY_BASE_URL</param-name>\n\
+        <param-value>${PROXY_BASE_URL}</param-value>\n\
+      </context-param>\n\
+      <context-param>\n\
+        <param-name>GEOSERVER_CSRF_WHITELIST</param-name>\n\
+        <param-value>${CSRF_DOMAIN}</param-value>\n\
+      </context-param>" "$CATALINA_HOME/webapps/geoserver/WEB-INF/web.xml";
+  fi
+fi
+
 # start the tomcat
 $CATALINA_HOME/bin/catalina.sh run

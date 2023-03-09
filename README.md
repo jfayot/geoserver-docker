@@ -1,4 +1,46 @@
-# A geoserver docker image
+# Based on [Official geoserver docker](https://github.com/geoserver/docker)
+
+Added the ability to run geoserver behind HTTPS nginx proxy - credits to [Using NGINX to put Geoserver HTTPS](https://dev.to/iamtekson/using-nginx-to-put-geoserver-https-4204)
+
+The following additional environment variables are available:
+
+* ``SSL_ENABLED`` to ``true`` to enable SSL settings in Apache Tomcat
+* ``PROXY_BASE_URL`` to set the the proxy base url (``https://example.com/geoserver``)
+* ``CSRF_DOMAIN`` to allow specific domain against Cross-Site Request Forgery problem (``example.org``)
+
+Update your NGINX conf with the following location:
+
+```text
+server {
+  listen 443 ssl;
+  server_name example.com;
+  ...
+
+  location /geoserver {
+    proxy_pass http://127.0.0.1:9090/geoserver;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_redirect off;
+  }
+}
+```
+
+Image can then be built:
+
+```bash
+docker build . -t geoserver:latest
+```
+
+And container be started:
+
+```bash
+docker run -d -p 9090:8080 -e CORS_ENABLED=true -e CORS_ALLOWED_ORIGINS="*" -e CORS_ALLOWED_METHODS="GET,POST,PUT,DELETE,HEAD,OPTIONS" -e CORS_ALLOWED_HEADERS="*" -e SSL_ENABLED=true -e PROXY_BASE_URL="https://example.com/geoserver" -e CSRF_DOMAIN="example.com" geoserver:latest
+```
+
+---
+
+## A geoserver docker image
 
 This Dockerfile can be used to create images for all geoserver versions since 2.5.
 
